@@ -1,0 +1,22 @@
+name: Update Data
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs at midnight every day
+  workflow_dispatch: # This allows you to click a "Run" button manually on GitHub
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Dolt
+        run: sudo bash -c 'curl -L https://github.com/dolthub/dolt/releases/latest/download/install.sh | bash'
+      - name: Clone Earnings Data
+        run: dolt clone post-no-preference/earnings
+      - name: Run Script
+        run: python main.py
+      - name: Push Data
+        run: |
+          git config user.name "Bot"
+          git config user.email "bot@bot.com"
+          git add data.json
+          git diff-index --quiet HEAD || (git commit -m "Update data" && git push)
